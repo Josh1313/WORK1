@@ -15,13 +15,12 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./data/app.db"
     data_dir: Path = Path("./data")
     
-
     # OpenAI
     openai_api_key: str
     
     # Security
     secret_key: str = "Josue"
-    cors_origins: List[str] = ["http://localhost:8501"]
+    cors_origins: List[str] = ["http://frontend:8501"]
     
     # File Upload
     max_upload_size: int = 100 * 1024 * 1024  # 100MB

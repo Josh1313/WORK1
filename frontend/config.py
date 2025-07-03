@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
+    
     # Backend API
     BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
     

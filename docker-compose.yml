@@ -1,19 +1,36 @@
-version: '3.8'
 services:
   backend:
     build: ./backend
+    container_name: backend
     ports:
       - "8000:8000"
     volumes:
       - ./backend/data:/app/data
     env_file:
       - ./backend/.env
-  
+    environment:
+      # Proper mapping syntax
+      CORS_ORIGINS: '["http://frontend:8501","http://localhost:8501"]'
+    restart: unless-stopped
+    networks:
+      - app-network
+
   frontend:
     build: ./frontend
+    container_name: frontend
     ports:
       - "8501:8501"
     depends_on:
       - backend
+    env_file:
+      - ./frontend/.env
     environment:
       - BACKEND_URL=http://backend:8000
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
