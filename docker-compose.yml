@@ -8,9 +8,6 @@ services:
       - ./backend/data:/app/data
     env_file:
       - ./backend/.env
-    environment:
-      # Proper mapping syntax
-      CORS_ORIGINS: '["http://frontend:8501","http://localhost:8501"]'
     restart: unless-stopped
     networks:
       - app-network
@@ -25,7 +22,7 @@ services:
     env_file:
       - ./frontend/.env
     environment:
-      - BACKEND_URL=http://backend:8000
+      - BACKEND_URL=https://testkkok.zapto.org
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
     restart: unless-stopped
     networks:
