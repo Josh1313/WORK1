@@ -1,3 +1,6 @@
+# System Architecture Diagram
+
+```mermaid
 graph TD
     719["User<br>External Actor"]
     726["OpenAI APIs<br>GPT, Embeddings"]
@@ -21,3 +24,4 @@ graph TD
     721 -->|Makes HTTP Requests| 723
     719 -->|Interacts with| 722
     725 -->|Uses| 726
+```
