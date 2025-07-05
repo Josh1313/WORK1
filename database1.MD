@@ -54,9 +54,9 @@ graph TD
     
     style I fill:#e1f5fe,color:#000000
     style J fill:#f3e5f5,color:#000000
-    style K fill:#e8f5e8
-    style L fill:#fff3e0
-    style M fill:#e1f5fe
+    style K fill:#e8f5e8,color:#000000
+    style L fill:#fff3e0,color:#000000
+    style M fill:#e1f5fe,color:#000000
 ```
 
 ## Component Responsibilities
@@ -99,8 +99,8 @@ graph LR
         G --> H[Storage Service]
     end
     
-    style A fill:#81c784
-    style E fill:#ffb74d
+    style A fill:#81c784,color:#000000
+    style E fill:#ffb74d,color:#000000
 ```
 
 ###  Database Schema
