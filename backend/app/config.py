@@ -16,8 +16,15 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./data/app.db"
     data_dir: Path = Path("./data")
 
-    # OpenAI
-    openai_api_key: str
+    # Azure OpenAI (Add these new fields)
+    azure_openai_api_key: str
+    azure_openai_endpoint: str
+    azure_openai_deployment: str = "gpt-4.1-mini"
+    azure_openai_api_version: str = "2025-01-01-preview" 
+    
+    # Azure OpenAI - Embeddings Model
+    azure_openai_embedding_deployment: str = "text-embedding-3-large"
+    azure_openai_embedding_api_version: str = "2023-05-15"
 
     # Security
     secret_key: str = "Josue"

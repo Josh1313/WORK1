@@ -1,10 +1,13 @@
 import os
 from typing import Optional
 import pandas as pd
-from langchain_openai import ChatOpenAI
+from langchain_openai import AzureChatOpenAI
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain.agents.agent_types import AgentType
-import logging
+from dotenv import load_dotenv
+
+load_dotenv ()
+
 
 from app.config import settings
 
@@ -14,9 +17,11 @@ class ChatService:
     """Handle chat/LLM operations"""
     
     def __init__(self):
-        self.model = ChatOpenAI(
-            model="gpt-4.1-mini",
-            openai_api_key=settings.openai_api_key,
+        self.model = AzureChatOpenAI(
+            model=settings.azure_openai_deployment,
+            api_version=settings.azure_openai_api_version,
+            azure_endpoint=settings.azure_openai_endpoint,
+            openai_api_key=settings.azure_openai_api_key,
             temperature=0.1
         )
         

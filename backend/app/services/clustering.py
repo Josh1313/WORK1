@@ -7,7 +7,7 @@ import logging
 from typing import Optional, Dict, Any
 from datetime import datetime
 import tiktoken
-from openai import AsyncOpenAI
+from openai import AsyncAzureOpenAI #AsyncOpenAI
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import normalize
 from sklearn.metrics import silhouette_score
@@ -23,12 +23,26 @@ class ClusteringService:
     def __init__(self):
         self.storage = StorageService()
         self.tasks: Dict[str, Dict[str, Any]] = {}
-        self.encoding = tiktoken.encoding_for_model("text-embedding-3-small")
+        self.encoding = tiktoken.encoding_for_model("text-embedding-3-large")
         self.MAX_TOKENS = 8000
-        # Initialize AsyncOpenAI client with new interface
-        self.client = AsyncOpenAI(api_key=settings.openai_api_key)
         
-    # ADD THIS METHOD:
+        
+        # Initialize Azure OpenAI client for both chat and embeddings
+        self.client = AsyncAzureOpenAI(
+            api_key=settings.azure_openai_api_key,
+            api_version=settings.azure_openai_api_version,
+            azure_endpoint=settings.azure_openai_endpoint
+        )
+        
+        
+        # Separate client for embeddings if using different API version
+        self.embedding_client = AsyncAzureOpenAI(
+            api_key=settings.azure_openai_api_key,
+            api_version=settings.azure_openai_embedding_api_version,
+            azure_endpoint=settings.azure_openai_endpoint
+        )
+        
+    
     async def create_task(self, task_id: str, dataset_id: str) -> Dict[str, Any]:
         """Create and register a new clustering task"""
         task_info = {
@@ -124,9 +138,9 @@ class ClusteringService:
                 if attempt > 0:
                     await asyncio.sleep(0.5)
                 
-                # Use new OpenAI 1.0+ interface
+                # Use Azure OpenAI embeddings
                 response = await self.client.embeddings.create(
-                    model=model,
+                    model=settings.azure_openai_embedding_deployment,
                     input=texts
                 )
                 return [embedding.embedding for embedding in response.data]
@@ -181,9 +195,9 @@ class ClusteringService:
             {"role": "user", "content": user_prompt}
         ]
         
-        # Use new OpenAI 1.0+ interface
+        # Use Azure OpenAI chat completions
         response = await self.client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=settings.azure_openai_deployment,
             messages=messages,
             temperature=0.3
         )
@@ -194,6 +208,8 @@ class ClusteringService:
                                description_column: str, number_column: Optional[str],
                                n_clusters: int = 5):
         """Main clustering process"""
+        parquet_path = None  # Track intermediate file for cleanup
+        
         try:
             # Step 1: Clean descriptions
             await self.update_task_status(task_id, "processing", 10, "Starting clustering analysis......")
@@ -338,6 +354,15 @@ class ClusteringService:
                 f"Clustered analysis of {original_filename} with {n_clusters} clusters"
             )
             
+            # Step 7: Clean up intermediate parquet file
+            if parquet_path:
+                try:
+                    import os
+                    os.remove(parquet_path)
+                    logger.info(f"Successfully cleaned up intermediate file: {parquet_path}")
+                except Exception as cleanup_error:
+                    logger.warning(f"Failed to cleanup intermediate file {parquet_path}: {cleanup_error}")
+            
             # Complete
             await self.update_task_status(
                 task_id, "completed", 100,
@@ -353,4 +378,17 @@ class ClusteringService:
                 task_id, "failed", 0,
                 f"Clustering failed: {str(e)}"
             )
-
+            
+            # Clean up intermediate file even on failure
+            if parquet_path:
+                try:
+                    import os
+                    os.remove(parquet_path)
+                    logger.info(f"Cleaned up intermediate file after failure: {parquet_path}")
+                except Exception as cleanup_error:
+                    logger.warning(f"Failed to cleanup intermediate file after failure: {cleanup_error}")
+            
+            await self.update_task_status(
+                task_id, "failed", 0,
+                f"Clustering failed: {str(e)}"
+            )
